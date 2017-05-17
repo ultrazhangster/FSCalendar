@@ -145,7 +145,17 @@
         } else if (!self.startDate) {
             self.startDate = date;
         } else {
-            self.endDate = date;
+            
+            //startDate is not nil, but the second date selection could be earlier than the current start date
+            if ([date compare:self.startDate] != NSOrderedDescending) {
+                //need swap the start date and end date
+                NSDate *startDate = date;
+                self.endDate = self.startDate;
+                self.startDate = startDate;
+            }
+            else {
+                self.endDate = date;
+            }
         }
         
     }
