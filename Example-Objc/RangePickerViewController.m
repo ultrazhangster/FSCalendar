@@ -10,6 +10,7 @@
 #import "FSCalendar.h"
 #import "RangePickerCell.h"
 #import "FSCalendarExtensions.h"
+#import "DIYCalendarCell.h"
 
 @interface RangePickerViewController () <FSCalendarDataSource,FSCalendarDelegate,FSCalendarDelegateAppearance>
 
@@ -50,7 +51,7 @@
     calendar.delegate = self;
     calendar.pagingEnabled = NO;
     calendar.allowsMultipleSelection = YES;
-    calendar.rowHeight = 60;
+    calendar.rowHeight = 50;
     calendar.placeholderType = FSCalendarPlaceholderTypeNone;
     [view addSubview:calendar];
     self.calendar = calendar;
@@ -62,8 +63,8 @@
     
     calendar.swipeToChooseGesture.enabled = YES;
     
-    calendar.today = nil; // Hide the today circle
-    [calendar registerClass:[RangePickerCell class] forCellReuseIdentifier:@"cell"];
+    //calendar.today = nil; // Hide the today circle
+    [calendar registerClass:[DIYCalendarCell class] forCellReuseIdentifier:@"cell"];
     
 }
 
@@ -97,14 +98,6 @@
 - (NSDate *)maximumDateForCalendar:(FSCalendar *)calendar
 {
     return [self.gregorian dateByAddingUnit:NSCalendarUnitMonth value:10 toDate:[NSDate date] options:0];
-}
-
-- (NSString *)calendar:(FSCalendar *)calendar titleForDate:(NSDate *)date
-{
-    if ([self.gregorian isDateInToday:date]) {
-        return @"今";
-    }
-    return nil;
 }
 
 - (FSCalendarCell *)calendar:(FSCalendar *)calendar cellForDate:(NSDate *)date atMonthPosition:(FSCalendarMonthPosition)monthPosition
@@ -186,23 +179,37 @@
 
 - (void)configureCell:(__kindof FSCalendarCell *)cell forDate:(NSDate *)date atMonthPosition:(FSCalendarMonthPosition)position
 {
-    RangePickerCell *rangeCell = cell;
+    DIYCalendarCell *rangeCell = cell;
     if (position != FSCalendarMonthPositionCurrent) {
-        rangeCell.middleLayer.hidden = YES;
         rangeCell.selectionLayer.hidden = YES;
         return;
     }
+    BOOL isMiddle = NO;
     if (self.date1 && self.date2) {
         // The date is in the middle of the range
-        BOOL isMiddle = [date compare:self.date1] != [date compare:self.date2];
-        rangeCell.middleLayer.hidden = !isMiddle;
-    } else {
-        rangeCell.middleLayer.hidden = YES;
+        isMiddle = [date compare:self.date1] != [date compare:self.date2];
     }
-    BOOL isSelected = NO;
-    isSelected |= self.date1 && [self.gregorian isDate:date inSameDayAsDate:self.date1];
-    isSelected |= self.date2 && [self.gregorian isDate:date inSameDayAsDate:self.date2];
-    rangeCell.selectionLayer.hidden = !isSelected;
+    else {
+        rangeCell.selectionType = SelectionTypeNone;
+    }
+    BOOL isStartDate = NO;
+    BOOL isEndDate = NO;
+    isStartDate |= self.date1 && [self.gregorian isDate:date inSameDayAsDate:self.date1];
+    isEndDate |= self.date2 && [self.gregorian isDate:date inSameDayAsDate:self.date2];
+    if (isStartDate) {
+        rangeCell.subtitle = @"start";
+        rangeCell.selectionType = self.date2 ? SelectionTypeLeftBorder : SelectionTypeSingle;
+    }
+    else if(isEndDate) {
+        rangeCell.subtitle = @"end";
+        rangeCell.selectionType = self.date1 ? SelectionTypeRightBorder : SelectionTypeSingle;
+    }
+    else if(isMiddle) {
+        rangeCell.selectionType = SelectionTypeMiddle;
+    }
+    else {
+        rangeCell.selectionType = SelectionTypeNone;
+    }
 }
 
 @end

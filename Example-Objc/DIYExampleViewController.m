@@ -193,9 +193,6 @@
     
     DIYCalendarCell *diyCell = (DIYCalendarCell *)cell;
     
-    // Custom today circle
-    diyCell.circleImageView.hidden = ![self.gregorian isDateInToday:date];
-    
     // Configure selection layer
     if (monthPosition == FSCalendarMonthPositionCurrent) {
         
@@ -227,10 +224,7 @@
         diyCell.selectionType = selectionType;
         
     } else {
-        
-        diyCell.circleImageView.hidden = YES;
         diyCell.selectionLayer.hidden = YES;
-        
     }
 }
 
