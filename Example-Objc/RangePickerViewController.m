@@ -21,9 +21,9 @@
 @property (strong, nonatomic) NSDateFormatter *dateFormatter;
 
 // The start date of the range
-@property (strong, nonatomic) NSDate *date1;
+@property (strong, nonatomic) NSDate *startDate;
 // The end date of the range
-@property (strong, nonatomic) NSDate *date2;
+@property (strong, nonatomic) NSDate *endDate;
 
 - (void)configureCell:(__kindof FSCalendarCell *)cell forDate:(NSDate *)date atMonthPosition:(FSCalendarMonthPosition)position;
 
@@ -128,25 +128,26 @@
     
     if (calendar.swipeToChooseGesture.state == UIGestureRecognizerStateChanged) {
         // If the selection is caused by swipe gestures
-        if (!self.date1) {
-            self.date1 = date;
+        if (!self.startDate) {
+            self.startDate = date;
         } else {
-            if (self.date2) {
-                [calendar deselectDate:self.date2];
+            if (self.endDate) {
+                [calendar deselectDate:self.endDate];
             }
-            self.date2 = date;
+            self.endDate = date;
         }
     } else {
-        if (self.date2) {
-            [calendar deselectDate:self.date1];
-            [calendar deselectDate:self.date2];
-            self.date1 = date;
-            self.date2 = nil;
-        } else if (!self.date1) {
-            self.date1 = date;
+        if (self.endDate) {
+            [calendar deselectDate:self.startDate];
+            [calendar deselectDate:self.endDate];
+            self.startDate = date;
+            self.endDate = nil;
+        } else if (!self.startDate) {
+            self.startDate = date;
         } else {
-            self.date2 = date;
+            self.endDate = date;
         }
+        
     }
     
     [self configureVisibleCells];
@@ -185,24 +186,24 @@
         return;
     }
     BOOL isMiddle = NO;
-    if (self.date1 && self.date2) {
+    if (self.startDate && self.endDate) {
         // The date is in the middle of the range
-        isMiddle = [date compare:self.date1] != [date compare:self.date2];
+        isMiddle = [date compare:self.startDate] != [date compare:self.endDate];
     }
     else {
         rangeCell.selectionType = SelectionTypeNone;
     }
     BOOL isStartDate = NO;
     BOOL isEndDate = NO;
-    isStartDate |= self.date1 && [self.gregorian isDate:date inSameDayAsDate:self.date1];
-    isEndDate |= self.date2 && [self.gregorian isDate:date inSameDayAsDate:self.date2];
+    isStartDate |= self.startDate && [self.gregorian isDate:date inSameDayAsDate:self.startDate];
+    isEndDate |= self.endDate && [self.gregorian isDate:date inSameDayAsDate:self.endDate];
     if (isStartDate) {
         rangeCell.subtitle = @"start";
-        rangeCell.selectionType = self.date2 ? SelectionTypeLeftBorder : SelectionTypeSingle;
+        rangeCell.selectionType = self.endDate ? SelectionTypeLeftBorder : SelectionTypeSingle;
     }
     else if(isEndDate) {
         rangeCell.subtitle = @"end";
-        rangeCell.selectionType = self.date1 ? SelectionTypeRightBorder : SelectionTypeSingle;
+        rangeCell.selectionType = self.startDate ? SelectionTypeRightBorder : SelectionTypeSingle;
     }
     else if(isMiddle) {
         rangeCell.selectionType = SelectionTypeMiddle;
